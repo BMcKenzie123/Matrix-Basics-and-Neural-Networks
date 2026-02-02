@@ -470,3 +470,71 @@ def load_sample_data() -> pd.DataFrame:
     df['season_year'] = 2020
 
     return df
+
+
+def load_nba_data(data_path: Optional[str] = None,
+                  start_year: int = 2018,
+                  n_players: int = 100,
+                  min_games: int = 20) -> pd.DataFrame:
+    """
+    Load actual NBA player data from the repository CSV file.
+
+    Args:
+        data_path: Path to the CSV file. If None, uses the default path.
+        start_year: Starting year for filtering seasons (default: 2018)
+        n_players: Number of players to select for the pool (default: 100)
+        min_games: Minimum games played requirement (default: 20)
+
+    Returns:
+        DataFrame with processed NBA player data
+    """
+    import os
+
+    # Default to the all_seasons.csv in the repo root
+    if data_path is None:
+        # Get the directory containing this module
+        module_dir = os.path.dirname(os.path.abspath(__file__))
+        # Go up one level to the repo root
+        repo_root = os.path.dirname(module_dir)
+        data_path = os.path.join(repo_root, 'all_seasons.csv')
+
+    if not os.path.exists(data_path):
+        print(f"Warning: NBA data file not found at {data_path}. Using sample data.")
+        return load_sample_data()
+
+    # Load the CSV
+    df = pd.read_csv(data_path)
+
+    # Extract season year from season column (format: "1996-97" or "2020-21")
+    def extract_year(season):
+        if pd.isna(season):
+            return None
+        try:
+            return int(str(season).split('-')[0])
+        except (ValueError, IndexError):
+            return None
+
+    df['season_year'] = df['season'].apply(extract_year)
+
+    # Filter by season window (last 5 years from start_year)
+    end_year = start_year + 4
+    df_filtered = df[(df['season_year'] >= start_year) & (df['season_year'] <= end_year)]
+
+    # Filter by minimum games played
+    if 'gp' in df_filtered.columns:
+        df_filtered = df_filtered[df_filtered['gp'] >= min_games]
+
+    # Remove duplicates - keep the most recent season for each player
+    df_filtered = df_filtered.sort_values('season_year', ascending=False)
+    df_filtered = df_filtered.drop_duplicates(subset=['player_name'], keep='first')
+
+    # Sample if we have more players than needed
+    if len(df_filtered) > n_players:
+        df_filtered = df_filtered.sample(n=n_players, random_state=42)
+
+    # Reset index
+    df_filtered = df_filtered.reset_index(drop=True)
+
+    print(f"Loaded {len(df_filtered)} players from {start_year} to {end_year} seasons")
+
+    return df_filtered

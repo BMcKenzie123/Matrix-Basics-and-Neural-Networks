@@ -23,7 +23,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from mlp.neural_network import MultilayerPerceptron, TeamSelectionMLP, ActivationFunctions
-from mlp.data_processing import NBADataProcessor, TeamBuilder, load_sample_data
+from mlp.data_processing import NBADataProcessor, TeamBuilder, load_sample_data, load_nba_data
 
 
 # Page configuration
@@ -262,11 +262,24 @@ def main():
     st.sidebar.subheader("Data Source")
     data_source = st.sidebar.radio(
         "Select data source:",
-        ["Sample Data (Demo)", "Upload CSV"]
+        ["NBA Data (Real)", "Sample Data (Demo)", "Upload CSV"]
     )
 
+    # Player pool settings
+    st.sidebar.subheader("Player Pool Selection")
+    n_players = st.sidebar.slider("Number of players in pool:", 50, 200, 100)
+
     # Load data based on selection
-    if data_source == "Upload CSV":
+    if data_source == "NBA Data (Real)":
+        # Settings for real NBA data
+        start_year = st.sidebar.slider("Starting season year:", 2010, 2022, 2018)
+        min_games = st.sidebar.slider("Minimum games played:", 10, 50, 20)
+        df = load_nba_data(
+            start_year=start_year,
+            n_players=n_players,
+            min_games=min_games
+        )
+    elif data_source == "Upload CSV":
         uploaded_file = st.sidebar.file_uploader(
             "Upload NBA Players CSV",
             type=['csv']
@@ -274,14 +287,10 @@ def main():
         if uploaded_file is not None:
             df = pd.read_csv(uploaded_file)
         else:
-            st.info("Please upload a CSV file or select 'Sample Data (Demo)'")
-            df = load_sample_data()
+            st.info("Please upload a CSV file or select another data source")
+            df = load_nba_data(n_players=n_players)
     else:
         df = load_sample_data()
-
-    # Season filter
-    st.sidebar.subheader("Player Pool Selection")
-    n_players = st.sidebar.slider("Number of players in pool:", 50, 200, 100)
 
     # Network architecture
     st.sidebar.subheader("MLP Architecture")

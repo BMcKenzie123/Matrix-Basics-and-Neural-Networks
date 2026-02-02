@@ -19,7 +19,8 @@ from .data_processing import (
     NBADataProcessor,
     TeamBuilder,
     TeamComposition,
-    load_sample_data
+    load_sample_data,
+    load_nba_data
 )
 
 __all__ = [
@@ -30,7 +31,8 @@ __all__ = [
     'NBADataProcessor',
     'TeamBuilder',
     'TeamComposition',
-    'load_sample_data'
+    'load_sample_data',
+    'load_nba_data'
 ]
 
 __version__ = '1.0.0'
