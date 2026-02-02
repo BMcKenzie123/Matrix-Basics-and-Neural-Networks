@@ -269,14 +269,13 @@ def main():
     st.sidebar.subheader("Player Pool Selection")
     n_players = st.sidebar.slider("Number of players in pool:", 50, 200, 100)
 
-    # Load data based on selection - get parameters first for change detection
+    # Data parameters - shown for all data sources
     if data_source == "NBA Data (Real)":
-        # Settings for real NBA data
-        start_year = st.sidebar.slider("Starting season year:", 2010, 2022, 2018)
-        min_games = st.sidebar.slider("Minimum games played:", 10, 50, 20)
+        st.sidebar.subheader("NBA Data Parameters")
     else:
-        start_year = None
-        min_games = None
+        st.sidebar.subheader("Data Parameters")
+    start_year = st.sidebar.slider("Starting season year:", 2010, 2022, 2018)
+    min_games = st.sidebar.slider("Minimum games played:", 10, 50, 20)
 
     # Create a data configuration key to detect any data-related changes
     data_config = {
@@ -315,9 +314,9 @@ def main():
             df = pd.read_csv(uploaded_file)
         else:
             st.info("Please upload a CSV file or select another data source")
-            df = load_nba_data(n_players=n_players)
+            df = load_nba_data(start_year=start_year, n_players=n_players, min_games=min_games)
     else:
-        df = load_sample_data()
+        df = load_sample_data(n_players=n_players, min_games=min_games, start_year=start_year)
 
     # Network architecture
     st.sidebar.subheader("MLP Architecture")

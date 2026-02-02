@@ -433,28 +433,36 @@ class TeamBuilder:
         return evaluation
 
 
-def load_sample_data() -> pd.DataFrame:
+def load_sample_data(n_players: int = 150,
+                     min_games: int = 20,
+                     start_year: int = 2020) -> pd.DataFrame:
     """
     Create sample NBA-like data for demonstration.
+
+    Args:
+        n_players: Number of players to generate (default: 150)
+        min_games: Minimum games played - used to set lower bound for gp (default: 20)
+        start_year: Season year for the data (default: 2020)
 
     Returns:
         DataFrame with synthetic player data
     """
     np.random.seed(42)
 
-    n_players = 150
+    # Format season string based on start_year
+    season_str = f'{start_year}-{str(start_year + 1)[-2:]}'
 
     # Generate synthetic player data
     data = {
         'player_name': [f'Player_{i}' for i in range(n_players)],
-        'season': ['2020-21'] * n_players,
+        'season': [season_str] * n_players,
         'player_position': np.random.choice(
             ['G', 'F', 'C', 'G-F', 'F-C'], n_players, p=[0.3, 0.3, 0.2, 0.1, 0.1]
         ),
         'age': np.random.randint(20, 38, n_players),
         'player_height': np.random.normal(200, 10, n_players),  # cm
         'player_weight': np.random.normal(100, 15, n_players),  # kg
-        'gp': np.random.randint(10, 82, n_players),
+        'gp': np.random.randint(min_games, 82, n_players),
         'pts': np.random.exponential(12, n_players) + 2,
         'reb': np.random.exponential(4, n_players) + 1,
         'ast': np.random.exponential(3, n_players) + 0.5,
@@ -467,7 +475,7 @@ def load_sample_data() -> pd.DataFrame:
     }
 
     df = pd.DataFrame(data)
-    df['season_year'] = 2020
+    df['season_year'] = start_year
 
     return df
 
@@ -500,7 +508,7 @@ def load_nba_data(data_path: Optional[str] = None,
 
     if not os.path.exists(data_path):
         print(f"Warning: NBA data file not found at {data_path}. Using sample data.")
-        return load_sample_data()
+        return load_sample_data(n_players=n_players, min_games=min_games, start_year=start_year)
 
     # Load the CSV
     df = pd.read_csv(data_path)
