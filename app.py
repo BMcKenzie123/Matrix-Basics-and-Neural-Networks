@@ -269,11 +269,38 @@ def main():
     st.sidebar.subheader("Player Pool Selection")
     n_players = st.sidebar.slider("Number of players in pool:", 50, 200, 100)
 
-    # Load data based on selection
+    # Load data based on selection - get parameters first for change detection
     if data_source == "NBA Data (Real)":
         # Settings for real NBA data
         start_year = st.sidebar.slider("Starting season year:", 2010, 2022, 2018)
         min_games = st.sidebar.slider("Minimum games played:", 10, 50, 20)
+    else:
+        start_year = None
+        min_games = None
+
+    # Create a data configuration key to detect any data-related changes
+    data_config = {
+        'data_source': data_source,
+        'n_players': n_players,
+        'start_year': start_year,
+        'min_games': min_games
+    }
+
+    # Detect data configuration changes and clear stale session state
+    if 'data_config' not in st.session_state:
+        st.session_state['data_config'] = data_config
+    elif st.session_state['data_config'] != data_config:
+        # Data configuration changed - clear model-related session state
+        keys_to_clear = ['mlp', 'cost_history', 'accuracy_history', 'processor',
+                         'df_processed', 'X', 'Y', 'n_features']
+        for key in keys_to_clear:
+            if key in st.session_state:
+                del st.session_state[key]
+        st.session_state['data_config'] = data_config
+        st.toast("Data configuration changed. Please retrain the model.", icon="⚠️")
+
+    # Load data based on selection
+    if data_source == "NBA Data (Real)":
         df = load_nba_data(
             start_year=start_year,
             n_players=n_players,
