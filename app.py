@@ -23,7 +23,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from mlp.neural_network import MultilayerPerceptron, TeamSelectionMLP, ActivationFunctions
-from mlp.data_processing import NBADataProcessor, TeamBuilder, load_sample_data, load_nba_data
+from mlp.data_processing import NBADataProcessor, TeamBuilder, load_nba_data
 
 
 # Page configuration
@@ -262,7 +262,7 @@ def main():
     st.sidebar.subheader("Data Source")
     data_source = st.sidebar.radio(
         "Select data source:",
-        ["NBA Data (Real)", "Sample Data (Demo)", "Upload CSV"]
+        ["NBA Data (Real)", "Upload CSV"]
     )
 
     # Player pool settings
@@ -299,13 +299,7 @@ def main():
         st.toast("Data configuration changed. Please retrain the model.", icon="⚠️")
 
     # Load data based on selection
-    if data_source == "NBA Data (Real)":
-        df = load_nba_data(
-            start_year=start_year,
-            n_players=n_players,
-            min_games=min_games
-        )
-    elif data_source == "Upload CSV":
+    if data_source == "Upload CSV":
         uploaded_file = st.sidebar.file_uploader(
             "Upload NBA Players CSV",
             type=['csv']
@@ -313,10 +307,15 @@ def main():
         if uploaded_file is not None:
             df = pd.read_csv(uploaded_file)
         else:
-            st.info("Please upload a CSV file or select another data source")
+            st.info("Please upload a CSV file or select 'NBA Data (Real)'")
             df = load_nba_data(start_year=start_year, n_players=n_players, min_games=min_games)
     else:
-        df = load_sample_data(n_players=n_players, min_games=min_games, start_year=start_year)
+        # Default: NBA Data (Real)
+        df = load_nba_data(
+            start_year=start_year,
+            n_players=n_players,
+            min_games=min_games
+        )
 
     # Network architecture
     st.sidebar.subheader("MLP Architecture")
